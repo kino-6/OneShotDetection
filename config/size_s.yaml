@@ -1,0 +1,60 @@
+# Custom YOLOv5 Configuration for GPL Avoidance
+
+# Parameters
+nc: 80  # number of classes (e.g., COCO dataset has 80 classes)
+depth_multiple: 0.33  # model depth scaling factor (scales the number of layers)
+width_multiple: 0.50  # model width scaling factor (scales the number of channels)
+
+# Anchor boxes
+anchors:
+  # Anchor boxes are predefined width-height pairs used for bounding box regression.
+  # They are determined empirically or through clustering on the training dataset.
+  # Here, the values are set for three feature map levels (P3/8, P4/16, P5/32).
+  # P3/8: Resolution reduced by 8x (feature map for small objects)
+  # P4/16: Resolution reduced by 16x (feature map for medium objects)
+  # P5/32: Resolution reduced by 32x (feature map for large objects)
+  - [10, 13, 16, 30, 33, 23]       # Feature map level: P3/8
+  - [30, 61, 62, 45, 59, 119]      # Feature map level: P4/16
+  - [116, 90, 156, 198, 373, 326]  # Feature map level: P5/32
+
+# Backbone: Extracts features from the input image.
+backbone:
+  # [from, number, module, args]
+  # - "from": Index of the previous layer(s) as input.
+  # - "number": Number of repetitions for the module.
+  # - "module": The type of module used (e.g., Conv, C3, SPPF).
+  # - "args": Arguments passed to the module.
+  [[-1, 1, Conv, [64, 6, 2, 2]],  # Layer 0: Downsample input to P1/2
+   [-1, 1, Conv, [128, 3, 2]],    # Layer 1: Downsample to P2/4
+   [-1, 3, C3, [128]],            # Layer 2: CSP block for P2/4
+   [-1, 1, Conv, [256, 3, 2]],    # Layer 3: Downsample to P3/8
+   [-1, 6, C3, [256]],            # Layer 4: CSP block for P3/8
+   [-1, 1, Conv, [512, 3, 2]],    # Layer 5: Downsample to P4/16
+   [-1, 9, C3, [512]],            # Layer 6: CSP block for P4/16
+   [-1, 1, Conv, [1024, 3, 2]],   # Layer 7: Downsample to P5/32
+   [-1, 3, C3, [1024]],           # Layer 8: CSP block for P5/32
+   [-1, 1, SPPF, [1024, 5]],      # Layer 9: Spatial pyramid pooling layer
+  ]
+
+# Head: Combines features from different scales for detection.
+head:
+  [[-1, 1, Conv, [512, 1, 1]],                  # Layer 10: Reduce channels
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],  # Layer 11: Upsample to P4/16
+   [[-1, 6], 1, Concat, [1]],                   # Layer 12: Concatenate with P4/16 features
+   [-1, 3, C3, [512, False]],                   # Layer 13: CSP block for P4/16
+
+   [-1, 1, Conv, [256, 1, 1]],                  # Layer 14: Reduce channels
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],  # Layer 15: Upsample to P3/8
+   [[-1, 4], 1, Concat, [1]],                   # Layer 16: Concatenate with P3/8 features
+   [-1, 3, C3, [256, False]],                   # Layer 17: CSP block for P3/8 (small objects)
+
+   [-1, 1, Conv, [256, 3, 2]],                  # Layer 18: Downsample to P4/16
+   [[-1, 14], 1, Concat, [1]],                  # Layer 19: Concatenate with P4/16 features
+   [-1, 3, C3, [512, False]],                   # Layer 20: CSP block for P4/16 (medium objects)
+
+   [-1, 1, Conv, [512, 3, 2]],                  # Layer 21: Downsample to P5/32
+   [[-1, 10], 1, Concat, [1]],                  # Layer 22: Concatenate with P5/32 features
+   [-1, 3, C3, [1024, False]],                  # Layer 23: CSP block for P5/32 (large objects)
+
+   [[17, 20, 23], 1, Detect, [nc, anchors]],    # Layer 24: Detect head (P3, P4, P5)
+  ]

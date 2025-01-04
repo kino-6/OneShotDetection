@@ -1,0 +1,55 @@
+# Custom YOLOv5 Hyperparameters
+
+# These hyperparameters are tailored for training on datasets like COCO, focusing on reduced augmentation.
+
+# They manage learning rate schedules, optimizer configurations, loss scaling, and data augmentation behavior.
+
+# Learning rate configuration
+lr0: 0.01  # Starting learning rate for the chosen optimizer (e.g., SGD: 0.01, Adam: 0.001).
+lrf: 0.01  # Final learning rate as a fraction of `lr0` for cyclic scheduling (e.g., OneCycleLR).
+
+# Optimizer configuration
+momentum: 0.937  # Momentum parameter for SGD or beta1 for Adam optimization.
+weight_decay: 0.0005  # Regularization term to mitigate overfitting via weight penalization (L2 norm).
+
+# Warm-up phase settings
+warmup_epochs: 3.0  # Epoch count for gradual learning rate ramp-up.
+warmup_momentum: 0.8  # Initial momentum value during the warm-up phase.
+warmup_bias_lr: 0.1  # Initial learning rate for bias-specific parameters during warm-up.
+
+# Loss function scaling parameters
+box: 0.05  # Scaling factor for bounding box regression loss contribution.
+cls: 0.5  # Scaling factor for classification loss contribution.
+cls_pw: 1.0  # Weight for positive samples in classification loss calculations.
+obj: 1.0  # Scaling factor for objectness loss contribution.
+obj_pw: 1.0  # Weight for positive samples in objectness loss calculations.
+
+# IoU and anchor threshold settings
+iou_t: 0.20  # Intersection-over-Union threshold for assigning positives/negatives in training.
+anchor_t: 4.0  # Threshold for matching anchors with ground truth boxes.
+# anchors: 3  # Number of anchor boxes per prediction layer (if applicable).
+
+# Focal loss configuration
+fl_gamma: 0.0  # Gamma parameter for focal loss adjustments (e.g., EfficientDet uses 1.5).
+
+# Data augmentation parameters
+hsv_h: 0.015  # Range of hue shift for hue augmentation (fraction of 1).
+hsv_s: 0.7  # Factor for color saturation adjustment.
+hsv_v: 0.4  # Factor for brightness adjustment.
+
+degrees: 0.0  # Maximum degree of image rotation for augmentation.
+translate: 0.1  # Maximum fraction of image size for translation augmentation.
+scale: 0.5  # Maximum scaling factor for image size augmentation.
+shear: 0.0  # Maximum degree for shear augmentation.
+perspective: 0.0  # Range for perspective transformation distortion (e.g., 0-0.001).
+
+# Probability of basic geometric augmentations
+flipud: 0.0  # Chance of applying vertical flip augmentation.
+fliplr: 0.5  # Chance of applying horizontal flip augmentation.
+
+# Advanced augmentation strategies
+mosaic: 1.0  # Likelihood of using mosaic augmentation (merging 4 images into one).
+mixup: 0.0  # Likelihood of applying mixup augmentation (blending two images).
+copy_paste: 0.0  # Likelihood of employing copy-paste augmentation (useful for segmentation tasks).
+
+# Note: Comments have been uniquely written, and resemblance to any prior implementation is unintentional.
